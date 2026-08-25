@@ -1,4 +1,4 @@
-name: build-minimax-h3-image
+name: build-minimax-h3-turbo-image
 on:
   push:
     paths: ['Dockerfile', '.github/workflows/build.yml']
@@ -6,7 +6,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 150
+    timeout-minutes: 180
     permissions:
       contents: read
       packages: write
@@ -22,6 +22,10 @@ jobs:
           swap-storage: true
       - uses: actions/checkout@v4
       - uses: docker/setup-buildx-action@v3
+      - name: Resolve image name
+        id: image
+        shell: bash
+        run: echo "name=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
       - name: Login to ghcr.io
         uses: docker/login-action@v3
         with:
@@ -33,7 +37,7 @@ jobs:
         with:
           context: .
           push: true
-          tags: ghcr.io/vincezh2000/minimax-h3-comfyui-serverless:code
+          tags: ${{ steps.image.outputs.name }}:code
           provenance: false
       - name: Install crane
         uses: imjasonh/setup-crane@v0.4
@@ -42,13 +46,14 @@ jobs:
       # streams one tar layer at a time onto the remote image instead: peak disk
       # is a single weight file + its tar (< 45GB, lives on /mnt).
       - name: Append weight layers with crane
+        env:
+          IMG: ${{ steps.image.outputs.name }}
         run: |
           set -euo pipefail
           sudo apt-get update -qq && sudo apt-get install -y -qq aria2
           crane auth login ghcr.io -u "${{ github.actor }}" -p "${{ secrets.GITHUB_TOKEN }}"
           WORK=/mnt/weights
           sudo mkdir -p "$WORK" && sudo chown "$USER" "$WORK"
-          IMG=ghcr.io/vincezh2000/minimax-h3-comfyui-serverless
           BASE="$IMG:code"
           append() { # $1 models subdir, $2 filename, $3 url
             mkdir -p "$WORK/stage/comfyui/models/$1"
@@ -69,4 +74,6 @@ jobs:
             https://huggingface.co/Comfy-Org/MiniMax-H3/resolve/main/vae/minimax_h3_video_vae_fp16.safetensors
           append vae minimax_h3_audio_vae_fp32.safetensors \
             https://huggingface.co/Comfy-Org/MiniMax-H3/resolve/main/vae/minimax_h3_audio_vae_fp32.safetensors
+          append loras minimax_h3_turbo_v4_step600_ema.safetensors \
+            https://huggingface.co/larryvrh/MiniMax-H3-Turbo-Lora/resolve/43a74557ac3f6539db8e0f2a959d03feb7a81480/minimax_h3_turbo_v4_step600_ema.safetensors
           crane tag "$IMG:wip" latest

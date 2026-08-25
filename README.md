@@ -6,6 +6,11 @@ Sister repo of [krea2-comfyui-serverless](https://github.com/vincezh2000/krea2-c
 
 **Image:** `ghcr.io/vincezh2000/minimax-h3-comfyui-serverless:latest`
 
+This fork also builds a Turbo-enabled image in its own GHCR namespace. It adds
+the pinned `ComfyUI-MiniMax-H3-Turbo` node and the recommended
+`minimax_h3_turbo_v4_step600_ema.safetensors` LoRA. Use
+`example_workflows/t2v_turbo_api.json` at 6–8 steps (8 by default).
+
 ## What's inside
 
 - Base: `runpod/worker-comfyui:5.8.6-base`, ComfyUI pinned to **v0.30.1** (native H3 nodes need ≥0.30.0)

@@ -16,8 +16,21 @@ RUN cd /comfyui && git fetch --depth 1 origin refs/tags/v0.30.1 && git checkout 
     /opt/venv/bin/pip install --no-cache-dir --force-reinstall torch==2.12.0 torchvision torchaudio \
       --index-url https://download.pytorch.org/whl/cu126
 
+# MiniMax-H3 Turbo support pinned to a reviewed commit. The node handles the
+# pruned INT8/curve base and the separate audio/video sampling schedules used by
+# older ComfyUI releases.
+ARG H3_TURBO_NODE_COMMIT=4274783a23afcfdbea3b4876cb79effd6c510785
+RUN mkdir -p /comfyui/custom_nodes/ComfyUI-MiniMax-H3-Turbo && \
+    cd /comfyui/custom_nodes/ComfyUI-MiniMax-H3-Turbo && \
+    git init && \
+    git remote add origin https://github.com/Larryvrh/ComfyUI-MiniMax-H3-Turbo.git && \
+    git fetch --depth 1 origin "$H3_TURBO_NODE_COMMIT" && \
+    git checkout FETCH_HEAD && \
+    rm -rf .git
+
 # Weights are NOT baked here: 42.5GB of layers makes buildkit's export step need
 # 2x that on disk, which no GHA runner survives. The workflow instead builds this
 # slim "code" image, then streams each weight file onto it as an image layer with
 # `crane append` (single-copy disk usage). See .github/workflows/build.yml.
-RUN mkdir -p /comfyui/models/diffusion_models /comfyui/models/text_encoders /comfyui/models/vae
+RUN mkdir -p /comfyui/models/diffusion_models /comfyui/models/text_encoders \
+    /comfyui/models/vae /comfyui/models/loras
