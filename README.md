@@ -11,6 +11,13 @@ the pinned `ComfyUI-MiniMax-H3-Turbo` node and the recommended
 `minimax_h3_turbo_v4_step600_ema.safetensors` LoRA. Use
 `example_workflows/t2v_turbo_api.json` at 6–8 steps (8 by default).
 
+It also includes the pinned
+[`Comfyui-MMH3-UltimateUpscale`](https://github.com/bbaudio-2025/Comfyui-MMH3-UltimateUpscale)
+node. The model-free interpolation path works without extra weights and keeps
+the nested H3 audio latent intact while temporally chunking and spatially tiling
+the video latent. Optional `minimax_h3_latent_upscaler_3d_*` checkpoints belong
+in `models/latent_upscale_models`; none are downloaded automatically.
+
 ## What's inside
 
 - Base: `runpod/worker-comfyui:5.8.6-base`, ComfyUI pinned to **v0.30.1** (native H3 nodes need ≥0.30.0)
@@ -68,4 +75,5 @@ Two-phase build (the naive single Dockerfile OOMs the runner disk — buildkit's
 
 1. `docker build` a slim **:code** image (base + ComfyUI v0.30.1 pin, no weights) and push it
 2. For each weight file: download → tar → **`crane append`** streams it onto the remote image as a
-   new layer (peak disk = one file + its tar, on /mnt) → final manifest tagged **:latest**
+   new layer (peak disk = one file + its tar, on /mnt) → final manifest tagged **:latest** and
+   **:sha-&lt;12-character-commit&gt;** for immutable RunPod deployment
