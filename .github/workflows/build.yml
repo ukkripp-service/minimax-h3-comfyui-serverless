@@ -77,6 +77,3 @@ jobs:
           append loras minimax_h3_turbo_v4_step600_ema.safetensors \
             https://huggingface.co/larryvrh/MiniMax-H3-Turbo-Lora/resolve/43a74557ac3f6539db8e0f2a959d03feb7a81480/minimax_h3_turbo_v4_step600_ema.safetensors
           crane tag "$IMG:wip" latest
-          IMMUTABLE_TAG="sha-${GITHUB_SHA::12}"
-          crane tag "$IMG:wip" "$IMMUTABLE_TAG"
-          echo "Built $IMG:$IMMUTABLE_TAG" >> "$GITHUB_STEP_SUMMARY"

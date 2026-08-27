@@ -28,22 +28,9 @@ RUN mkdir -p /comfyui/custom_nodes/ComfyUI-MiniMax-H3-Turbo && \
     git checkout FETCH_HEAD && \
     rm -rf .git
 
-# MiniMax H3 latent re-sampling/upscaling with temporal chunking and spatial
-# tiling. Pinned after reviewing the source: it has no extra Python packages,
-# network calls, or forced model downloads. Model-free latent interpolation is
-# available immediately; optional 3D upscaler weights can be added separately.
-ARG MMH3_ULTIMATE_UPSCALE_COMMIT=6db8fa5a4e4ca0718d2ea8d08002ea899fe27721
-RUN mkdir -p /comfyui/custom_nodes/Comfyui-MMH3-UltimateUpscale && \
-    cd /comfyui/custom_nodes/Comfyui-MMH3-UltimateUpscale && \
-    git init && \
-    git remote add origin https://github.com/bbaudio-2025/Comfyui-MMH3-UltimateUpscale.git && \
-    git fetch --depth 1 origin "$MMH3_ULTIMATE_UPSCALE_COMMIT" && \
-    git checkout FETCH_HEAD && \
-    rm -rf .git
-
 # Weights are NOT baked here: 42.5GB of layers makes buildkit's export step need
 # 2x that on disk, which no GHA runner survives. The workflow instead builds this
 # slim "code" image, then streams each weight file onto it as an image layer with
 # `crane append` (single-copy disk usage). See .github/workflows/build.yml.
 RUN mkdir -p /comfyui/models/diffusion_models /comfyui/models/text_encoders \
-    /comfyui/models/vae /comfyui/models/loras /comfyui/models/latent_upscale_models
+    /comfyui/models/vae /comfyui/models/loras
